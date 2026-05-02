@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="شجرة عائلة النبي محمد ﷺ — أجداده وأبناؤه وزوجاته"/>
+  <title>شجرة النسب | سيرة النور</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="css/main.css"/>
+  <style>
+    .tree-hero {
+      padding: 130px var(--space-6) var(--space-20);
+      text-align: center;
+      background: var(--bg-page);
+      position: relative; overflow: hidden;
+    }
+    .tree-hero-title {
+      font-family: var(--font-arabic); font-size: var(--text-6xl);
+      font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-4);
+    }
+    body.ltr .tree-hero-title { font-family: var(--font-serif); }
+
+    .tree-container { overflow-x: auto; padding: var(--space-8) var(--space-4); }
+
+    .person-node { display: inline-flex; flex-direction: column; align-items: center; gap: var(--space-2); cursor: default; }
+    .person-bubble {
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-xl);
+      border: 1.5px solid var(--border-default);
+      background: var(--bg-surface);
+      text-align: center; min-width: 130px;
+      transition: border-color var(--duration-base), box-shadow var(--duration-base), transform var(--duration-slow) var(--ease-spring);
+      box-shadow: var(--shadow-sm);
+    }
+    .person-bubble:hover { border-color: var(--color-gold); box-shadow: var(--shadow-gold-sm); transform: translateY(-3px); }
+    .person-bubble.prophet  { background: linear-gradient(135deg, var(--era5-bg), #0A1E12); border-color: var(--color-gold); box-shadow: var(--shadow-gold); }
+    .person-bubble.wife     { background: linear-gradient(135deg, #1A0D1A, #0E0810); border-color: rgba(180,100,200,0.4); }
+    .person-bubble.child    { background: linear-gradient(135deg, #0D1A12, #081008); border-color: var(--era5-border); }
+    .person-bubble.ancestor { background: linear-gradient(135deg, var(--era1-bg), var(--era1-bg-card)); border-color: var(--era1-border); }
+    .person-bubble.uncle    { background: linear-gradient(135deg, #1A1008, #100A04); border-color: rgba(180,120,50,0.3); }
+
+    .person-name { font-family: var(--font-arabic); font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); line-height: 1.3; }
+    body.ltr .person-name { font-family: var(--font-serif); }
+    .person-bubble.prophet .person-name  { color: #fff; font-size: var(--text-base); }
+    .person-bubble.ancestor .person-name { color: var(--era1-text); }
+    .person-bubble.wife .person-name     { color: rgba(255,255,255,0.9); }
+    .person-bubble.child .person-name    { color: var(--era5-text); }
+    .person-bubble.uncle .person-name    { color: rgba(255,255,255,0.85); }
+
+    .person-role { font-family: var(--font-ui); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px; }
+    .person-bubble.prophet .person-role  { color: var(--color-gold); }
+    .person-bubble.ancestor .person-role { color: var(--era1-accent); opacity: 0.8; }
+    .person-bubble.wife .person-role     { color: rgba(200,150,220,0.8); }
+    .person-bubble.child .person-role    { color: var(--era5-accent); opacity: 0.8; }
+    .person-bubble.uncle .person-role    { color: var(--era1-accent); opacity: 0.7; }
+
+    .tree-level { display: flex; justify-content: center; gap: var(--space-5); flex-wrap: wrap; position: relative; padding: var(--space-4) 0; }
+    .tree-connector { display: flex; justify-content: center; align-items: center; height: 40px; }
+    .tree-line-v { width: 2px; height: 100%; background: linear-gradient(to bottom, var(--border-gold), var(--border-default)); }
+
+    .tree-section-title {
+      font-family: var(--font-arabic); font-size: var(--text-2xl);
+      font-weight: 700; color: var(--text-primary);
+      text-align: center; margin-bottom: var(--space-8);
+      padding-bottom: var(--space-4); border-bottom: 1px solid var(--border-subtle);
+    }
+    body.ltr .tree-section-title { font-family: var(--font-serif); }
+
+    .wives-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
+    @media (max-width: 900px) { .wives-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px) { .wives-grid { grid-template-columns: 1fr; } }
+
+    .wife-card {
+      background: var(--bg-surface); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl); padding: var(--space-5); text-align: center;
+      transition: transform var(--duration-slow) var(--ease-spring), box-shadow var(--duration-base), border-color var(--duration-base);
+    }
+    .wife-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-gold-sm); border-color: rgba(180,100,200,0.4); }
+    .wife-avatar {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: linear-gradient(135deg, #1A0D1A, #0E0810);
+      border: 1.5px solid rgba(180,100,200,0.3);
+      margin: 0 auto var(--space-3);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-arabic); font-size: var(--text-xl); color: rgba(200,150,220,0.8);
+    }
+    .wife-name { font-family: var(--font-arabic); font-size: var(--text-base); font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-1); }
+    body.ltr .wife-name { font-family: var(--font-serif); }
+    .wife-honorific { font-size: var(--text-xs); color: var(--color-gold); font-family: var(--font-ui); margin-bottom: var(--space-2); }
+    .wife-note { font-family: var(--font-arabic); font-size: var(--text-xs); color: var(--text-muted); line-height: 1.5; }
+    body.ltr .wife-note { font-family: var(--font-ui); }
+
+    .children-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); }
+    @media (max-width: 768px) { .children-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .children-grid { grid-template-columns: 1fr; } }
+
+    .child-card {
+      background: var(--bg-surface); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl); padding: var(--space-5);
+      display: flex; align-items: flex-start; gap: var(--space-4);
+      transition: transform var(--duration-slow) var(--ease-spring), box-shadow var(--duration-base), border-color var(--duration-base);
+    }
+    .child-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-gold-sm); border-color: var(--era5-border); }
+    .child-gender { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-muted); display: flex; align-items: center; justify-content: center; font-size: var(--text-lg); flex-shrink: 0; }
+    .child-name { font-family: var(--font-arabic); font-size: var(--text-base); font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-1); }
+    body.ltr .child-name { font-family: var(--font-serif); }
+    .child-mother { font-family: var(--font-ui); font-size: var(--text-xs); color: var(--color-gold); margin-bottom: var(--space-1); }
+    .child-note { font-family: var(--font-arabic); font-size: var(--text-xs); color: var(--text-muted); line-height: 1.5; }
+    body.ltr .child-note { font-family: var(--font-ui); }
+
+    .ancestor-chain { display: flex; flex-direction: column; align-items: center; gap: 0; }
+    .ancestor-row { display: flex; align-items: center; gap: var(--space-4); }
+    .ancestor-arrow { color: var(--color-gold); font-size: var(--text-xl); opacity: 0.5; margin: -4px 0; }
+  </style>
+</head>
+
+<body data-page="family-tree">
+  <div id="reading-progress-track"><div id="reading-progress"></div></div>
+
+  <!-- NAV -->
+  <nav id="main-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <span class="nav-logo-primary">سيرة <span class="nav-logo-gold">النبي</span> ﷺ</span>
+        <span class="nav-logo-sub">The Prophet Seerah</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html"       class="nav-link" data-i18n="nav.home">الرئيسية</a></li>
+        <li><a href="timeline.html"    class="nav-link" data-i18n="nav.timeline">السيرة الزمنية</a></li>
+        <li><a href="events.html"      class="nav-link" data-i18n="nav.events">الأحداث الكبرى</a></li>
+        <li><a href="companions.html"  class="nav-link" data-i18n="nav.companions">الصحابة الكرام</a></li>
+        <li><a href="about.html"       class="nav-link" data-i18n="nav.about">عن النبي</a></li>
+        <li><a href="character.html"   class="nav-link" data-i18n="nav.character">أخلاقه الشريفة</a></li>
+        <li><a href="family-tree.html" class="nav-link active" data-i18n="nav.family">شجرة النسب</a></li>
+      </ul>
+      <div class="nav-actions">
+        <div class="lang-switcher">
+          <button class="lang-btn" data-lang-btn="ar">ع</button>
+          <button class="lang-btn" data-lang-btn="en">EN</button>
+          <button class="lang-btn" data-lang-btn="fr">FR</button>
+        </div>
+        <button class="theme-toggle" data-theme-toggle aria-label="تبديل المظهر">
+          <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="theme-icon-sun"  width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/></svg>
+        </button>
+        <button id="menu-toggle" aria-label="القائمة" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+  <div id="mobile-menu">
+    <button style="position:absolute;top:20px;inset-inline-end:20px;background:none;border:none;font-size:1.5rem;color:var(--text-primary);cursor:pointer;" onclick="MobileMenu.close()">✕</button>
+    <nav><ul style="display:flex;flex-direction:column;gap:16px;text-align:center;list-style:none;">
+      <li><a href="index.html"       class="mobile-nav-link" data-i18n="nav.home">الرئيسية</a></li>
+      <li><a href="timeline.html"    class="mobile-nav-link" data-i18n="nav.timeline">السيرة الزمنية</a></li>
+      <li><a href="events.html"      class="mobile-nav-link" data-i18n="nav.events">الأحداث الكبرى</a></li>
+      <li><a href="companions.html"  class="mobile-nav-link" data-i18n="nav.companions">الصحابة الكرام</a></li>
+      <li><a href="about.html"       class="mobile-nav-link" data-i18n="nav.about">عن النبي</a></li>
+      <li><a href="character.html"   class="mobile-nav-link" data-i18n="nav.character">أخلاقه الشريفة</a></li>
+      <li><a href="family-tree.html" class="mobile-nav-link" data-i18n="nav.family">شجرة النسب</a></li>
+    </ul></nav>
+    <div class="lang-switcher" style="margin-top:32px;">
+      <button class="lang-btn" data-lang-btn="ar">ع</button>
+      <button class="lang-btn" data-lang-btn="en">EN</button>
+      <button class="lang-btn" data-lang-btn="fr">FR</button>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <header class="tree-hero">
+    <div style="position:absolute;inset:0;opacity:0.05;pointer-events:none;"><svg width="100%" height="100%"><defs><pattern id="tr-geo" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse"><polygon points="40,5 44,20 58,12 50,25 65,28 50,31 58,44 44,36 40,51 36,36 22,44 30,31 15,28 30,25 22,12 36,20" fill="none" stroke="#C9A84C" stroke-width="0.5"/></pattern></defs><rect width="100%" height="100%" fill="url(#tr-geo)"/></svg></div>
+    <div style="position:relative;z-index:1;">
+      <h1 class="tree-hero-title reveal" data-i18n="nav.family">شجرة النسب</h1>
+      <p id="ft-hero-subtitle" style="font-family:var(--font-arabic);font-size:var(--text-xl);color:rgba(255,255,255,0.55);max-width:560px;margin:0 auto;" class="reveal">
+        أجداده الكرام وزوجاته الطاهرات وأبناؤه وبناته رضي الله عنهم
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <!-- ANCESTOR CHAIN -->
+    <section class="section">
+      <div class="container">
+        <h2 class="tree-section-title reveal" id="ft-ancestors-title">سلسلة الأجداد</h2>
+        <div class="tree-container reveal" id="ft-ancestor-chain"></div>
+        <div style="margin-top:var(--space-16);">
+          <h3 id="ft-uncles-title" style="font-family:var(--font-arabic);font-size:var(--text-xl);font-weight:700;color:var(--text-primary);text-align:center;margin-bottom:var(--space-6);">أعمامه الكرام — أبناء عبد المطلب</h3>
+          <div id="ft-uncles-grid" style="display:flex;flex-wrap:wrap;justify-content:center;gap:var(--space-4);" class="reveal-stagger"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WIVES -->
+    <section class="section" style="background:var(--bg-muted);">
+      <div class="container-lg">
+        <h2 class="tree-section-title reveal" id="ft-wives-title">أمهات المؤمنين رضي الله عنهن</h2>
+        <div class="wives-grid reveal-stagger" id="ft-wives-grid"></div>
+      </div>
+    </section>
+
+    <!-- CHILDREN -->
+    <section class="section">
+      <div class="container-lg">
+        <h2 class="tree-section-title reveal" id="ft-children-title">أبناؤه وبناته رضي الله عنهم</h2>
+        <div class="children-grid" id="ft-children-grid"></div>
+        <div style="margin-top:var(--space-16);text-align:center;" class="reveal">
+          <h3 id="ft-grandchildren-title" style="font-family:var(--font-arabic);font-size:var(--text-xl);font-weight:700;color:var(--text-primary);margin-bottom:var(--space-6);">أبناء فاطمة رضي الله عنها — أحفاد النبي ﷺ</h3>
+          <div id="ft-grandchildren-grid" style="display:flex;flex-wrap:wrap;justify-content:center;gap:var(--space-4);"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container-lg">
+      <div style="text-align:center;padding-bottom:var(--space-12);">
+        <span style="font-family:var(--font-arabic);font-size:var(--text-2xl);color:var(--color-gold);display:block;margin-bottom:var(--space-4);" class="animate-salawat">اللهم صلِّ وسلِّم على سيدنا محمد ﷺ وعلى آله وصحبه أجمعين</span>
+        <div style="display:flex;justify-content:center;gap:var(--space-4);flex-wrap:wrap;">
+          <a href="index.html"      class="footer-link" data-i18n="nav.home">الرئيسية</a>
+          <a href="timeline.html"   class="footer-link" data-i18n="nav.timeline">السيرة الزمنية</a>
+          <a href="companions.html" class="footer-link" data-i18n="nav.companions">الصحابة</a>
+          <a href="about.html"      class="footer-link" data-i18n="nav.about">عن النبي</a>
+          <a href="character.html"  class="footer-link" data-i18n="nav.character">أخلاقه الشريفة</a>
+        </div>
+      </div>
+      <div class="footer-bottom" style="justify-content:center;">
+        <p class="footer-copyright" data-i18n="footer.copyright">© ١٤٤٦ هـ — سيرة النور</p>
+      </div>
+    </div>
+  </footer>
+
+  <button id="scroll-top" aria-label="العودة لأعلى">↑</button>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  <script src="js/translations.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+    (function () {
+      function _getFT(lang) {
+        return (TRANSLATIONS[lang] && TRANSLATIONS[lang].familyTree)
+          ? TRANSLATIONS[lang].familyTree
+          : TRANSLATIONS.ar.familyTree;
+      }
+
+      function _node(type, name, role) {
+        return '<div class="person-node"><div class="person-bubble ' + type + '">' +
+          '<p class="person-name">' + name + '</p>' +
+          (role ? '<p class="person-role">' + role + '</p>' : '') +
+          '</div></div>';
+      }
+
+      function _arrow() { return '<div class="ancestor-arrow">↓</div>'; }
+
+      function renderChain(ft) {
+        var a = ft.ancestors;
+        return '<div class="ancestor-chain">' +
+          '<div class="ancestor-row">' + _node('ancestor', a.ibrahim.name, a.ibrahim.role) + '</div>' +
+          _arrow() +
+          '<div class="ancestor-row">' + _node('ancestor', a.ismail.name, a.ismail.role) + '</div>' +
+          _arrow() +
+          '<div style="display:flex;align-items:center;gap:var(--space-4);justify-content:center;">' +
+            _node('ancestor', a.kinana.name, '') +
+            '<span style="color:var(--text-muted);font-size:var(--text-sm);">←</span>' +
+            _node('ancestor', a.fihr.name, '') +
+          '</div>' +
+          _arrow() +
+          '<div class="ancestor-row">' + _node('ancestor', a.qusay.name, a.qusay.role) + '</div>' +
+          _arrow() +
+          '<div class="ancestor-row">' + _node('ancestor', a.abdManaf.name, a.abdManaf.role || '') + '</div>' +
+          _arrow() +
+          '<div class="ancestor-row">' + _node('ancestor', a.hashim.name, a.hashim.role) + '</div>' +
+          _arrow() +
+          '<div class="ancestor-row">' + _node('ancestor', a.abdAlMuttalib.name, a.abdAlMuttalib.role) + '</div>' +
+          _arrow() +
+          '<div style="display:flex;align-items:center;gap:var(--space-8);justify-content:center;flex-wrap:wrap;">' +
+            '<div class="person-node"><div class="person-bubble ancestor" style="border-color:rgba(196,136,58,0.5);">' +
+              '<p class="person-name">' + a.father.name + '</p>' +
+              '<p class="person-role">' + a.father.role + '</p>' +
+            '</div></div>' +
+            '<span style="color:var(--color-gold);font-size:var(--text-2xl);">+</span>' +
+            '<div class="person-node"><div class="person-bubble ancestor" style="border-color:rgba(196,136,58,0.5);">' +
+              '<p class="person-name">' + a.mother.name + '</p>' +
+              '<p class="person-role">' + a.mother.role + '</p>' +
+            '</div></div>' +
+          '</div>' +
+          '<div class="ancestor-arrow" style="font-size:var(--text-2xl);">↓</div>' +
+          '<div class="ancestor-row"><div class="person-node"><div class="person-bubble prophet">' +
+            '<p class="person-name" style="font-size:var(--text-xl);">' + a.prophetName + '</p>' +
+            '<p class="person-role">' + a.prophetYears + '</p>' +
+          '</div></div></div>' +
+        '</div>';
+      }
+
+      function renderUncles(ft) {
+        return ft.ancestors.uncles.map(function(u) {
+          return _node('uncle', u.name, u.role);
+        }).join('');
+      }
+
+      function renderWives(ft) {
+        return ft.wives.list.map(function(w) {
+          return '<div class="wife-card">' +
+            '<div class="wife-avatar">' + w.name[0] + '</div>' +
+            '<p class="wife-name">' + w.name + '</p>' +
+            '<p class="wife-honorific">' + ft.wives.honorific + '</p>' +
+            '<p class="wife-note">' + w.note + '</p>' +
+          '</div>';
+        }).join('');
+      }
+
+      function renderChildren(ft) {
+        return ft.children.list.map(function(c) {
+          var motherLbl = c.isFemale ? ft.children.motherFLabel : ft.children.motherLabel;
+          var specialStyle = c.isSpecial
+            ? ' style="border-color:var(--color-gold);"'
+            : '';
+          var nameStyle = c.isSpecial
+            ? ' style="color:var(--color-gold);"'
+            : '';
+          var genderStyle = c.isSpecial
+            ? ' style="background:linear-gradient(135deg,#1A0E08,#120A04);border:1px solid var(--color-gold);color:var(--color-gold);"'
+            : '';
+          return '<div class="child-card reveal"' + specialStyle + '>' +
+            '<div class="child-gender"' + genderStyle + '>' + c.gender + '</div>' +
+            '<div>' +
+              '<p class="child-name"' + nameStyle + '>' + c.name + '</p>' +
+              '<p class="child-mother"' + (c.isSpecial ? ' style="color:var(--color-gold);"' : '') + '>' + motherLbl + ': ' + c.mother + '</p>' +
+              '<p class="child-note">' + c.note + '</p>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+      }
+
+      function renderGrandchildren(ft) {
+        return ft.children.grandchildren.map(function(g) {
+          return _node('child', g.name, g.role);
+        }).join('');
+      }
+
+      function _setText(id, text) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = text;
+      }
+
+      function _setHTML(id, html) {
+        var el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+      }
+
+      function renderFamilyTree(lang) {
+        var ft = _getFT(lang);
+
+        _setText('ft-hero-subtitle', ft.hero.subtitle);
+        _setText('ft-ancestors-title', ft.ancestors.title);
+        _setText('ft-uncles-title', ft.ancestors.unclesTitle);
+        _setText('ft-wives-title', ft.wives.title);
+        _setText('ft-children-title', ft.children.title);
+        _setText('ft-grandchildren-title', ft.children.grandchildrenTitle);
+
+        _setHTML('ft-ancestor-chain', renderChain(ft));
+        _setHTML('ft-uncles-grid', renderUncles(ft));
+        _setHTML('ft-wives-grid', renderWives(ft));
+        _setHTML('ft-children-grid', renderChildren(ft));
+        _setHTML('ft-grandchildren-grid', renderGrandchildren(ft));
+
+        if (typeof ScrollReveal !== 'undefined') ScrollReveal.init();
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        var lang = (typeof LangManager !== 'undefined') ? LangManager.current : 'ar';
+        renderFamilyTree(lang);
+      });
+
+      document.addEventListener('langChange', function (e) {
+        renderFamilyTree(e.detail.lang);
+      });
+    })();
+  </script>
+</body>
+</html>
