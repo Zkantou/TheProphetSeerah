@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="السيرة الزمنية للنبي محمد ﷺ — من الولادة حتى الوفاة"/>
+  <title>السيرة الزمنية | سيرة النور</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="css/main.css"/>
+  <style>
+    /* ══════════════════════════════════════════
+       PAGE BASE
+    ══════════════════════════════════════════ */
+    #timeline-bg {
+      position: fixed; inset: 0; z-index: -1;
+      background: var(--bg-page);
+    }
+
+    /* ══════════════════════════════════════════
+       HERO
+    ══════════════════════════════════════════ */
+    .timeline-hero {
+      padding: 140px var(--space-6) var(--space-16);
+      text-align: center;
+      position: relative;
+    }
+    .timeline-hero-title {
+      font-family: var(--font-arabic);
+      font-size: var(--text-6xl);
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: var(--space-4);
+    }
+    body.ltr .timeline-hero-title { font-family: var(--font-serif); }
+    .timeline-hero-sub {
+      font-family: var(--font-arabic);
+      font-size: var(--text-xl);
+      color: var(--text-muted);
+    }
+    body.ltr .timeline-hero-sub { font-family: var(--font-serif); }
+
+    /* ══════════════════════════════════════════
+       MAP SECTION — Shared
+    ══════════════════════════════════════════ */
+    .map-journey-section {
+      position: relative;
+    }
+
+    .map-sticky-viewport {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      overflow: hidden;
+      will-change: transform;
+      z-index: 1;
+    }
+    /* Fallback background if image fails */
+    .ms-makkah  .map-sticky-viewport { background: #1A1008; }
+    .ms-madinah .map-sticky-viewport { background: #071510; }
+    .ms-farewell .map-sticky-viewport { background: #180C02; }
+
+    .map-bg-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 30%;
+      display: block;
+    }
+
+    .map-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .ms-makkah .map-vignette {
+      background: linear-gradient(to bottom,
+        rgba(0,0,0,.62) 0%, rgba(0,0,0,.10) 22%,
+        rgba(0,0,0,.14) 65%, rgba(0,0,0,.80) 100%);
+    }
+    .ms-madinah .map-vignette {
+      background: linear-gradient(to bottom,
+        rgba(0,8,4,.65) 0%, rgba(0,8,4,.08) 22%,
+        rgba(0,8,4,.14) 65%, rgba(0,8,4,.82) 100%);
+    }
+    .ms-farewell .map-vignette {
+      background: linear-gradient(to bottom,
+        rgba(8,6,0,.65) 0%, rgba(8,6,0,.08) 22%,
+        rgba(8,6,0,.14) 65%, rgba(8,6,0,.85) 100%);
+    }
+
+    /* SVG overlay */
+    .map-path-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    /* Path strokes */
+    .path-bg-trace {
+      fill: none;
+      stroke: rgba(201,168,76,.07);
+      stroke-width: 9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .path-glow-stroke {
+      fill: none;
+      stroke: rgba(240,192,64,.22);
+      stroke-width: 13;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      will-change: stroke-dashoffset;
+    }
+    .path-light-stroke {
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      will-change: stroke-dashoffset;
+    }
+
+    /* Station dots & rings */
+    .s-ring {
+      fill: none;
+      stroke: rgba(240,192,64,.45);
+      stroke-width: 1.5;
+      opacity: 0;
+      will-change: opacity;
+      transition: opacity .5s ease .15s;
+    }
+    .s-ring.reached { opacity: 1; }
+
+    .s-dot {
+      opacity: 0;
+      will-change: opacity;
+      transition: opacity .4s ease;
+    }
+    .s-dot.reached { opacity: 1; }
+    .s-dot.active  { animation: dotPulse 1.8s ease-in-out infinite; }
+
+    .s-connector {
+      fill: none;
+      stroke: rgba(201,168,76,.38);
+      stroke-width: 1;
+      stroke-dasharray: 3 3;
+      opacity: 0;
+      will-change: opacity;
+      transition: opacity .4s ease;
+    }
+    .s-connector.reached { opacity: 1; }
+
+    @keyframes dotPulse {
+      0%,100% { r: 5; }
+      50%      { r: 7.5; }
+    }
+
+    /* Cards */
+    .map-cards-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .map-station-card {
+      position: absolute;
+      width: 240px;
+      background: rgba(5,3,1,.86);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(201,168,76,.32);
+      border-radius: 14px;
+      padding: 14px 16px;
+      opacity: 0;
+      transform: translateY(10px) scale(.97);
+      transition: opacity .45s ease, transform .45s ease;
+      will-change: opacity, transform;
+      pointer-events: none;
+    }
+    .map-station-card.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .map-station-card.fading {
+      opacity: .25;
+      transform: translateY(0) scale(1);
+    }
+
+    .map-sc-num {
+      font-family: var(--font-ui);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(201,168,76,.6);
+      margin-bottom: 4px;
+    }
+    .map-sc-year {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--color-gold);
+      letter-spacing: .05em;
+      margin-bottom: 7px;
+    }
+    .map-sc-title {
+      font-family: var(--font-arabic);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.55;
+      margin-bottom: 6px;
+    }
+    body.ltr .map-sc-title { font-family: var(--font-serif); }
+    .map-sc-body {
+      font-family: var(--font-arabic);
+      font-size: 11px;
+      color: rgba(255,255,255,.56);
+      line-height: 1.65;
+    }
+    body.ltr .map-sc-body { font-family: var(--font-ui); }
+
+    /* HUD */
+    .map-hud {
+      position: absolute;
+      inset-inline-start: 0;
+      inset-inline-end: 0;
+      top: 76px;
+      padding: 0 var(--space-6);
+      z-index: 20;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .map-hud-eyebrow {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(201,168,76,.75);
+    }
+    .map-hud-title {
+      font-family: var(--font-arabic);
+      font-size: clamp(1.3rem, 3vw, 2.1rem);
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 2px 24px rgba(0,0,0,.9);
+    }
+    body.ltr .map-hud-title { font-family: var(--font-serif); }
+
+    .map-progress-track {
+      width: 200px;
+      height: 2px;
+      background: rgba(255,255,255,.14);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .map-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #C9A84C, #F5DC80, #C9A84C);
+      border-radius: 2px;
+      will-change: width;
+      transition: width .12s linear;
+    }
+
+    /* Station counter */
+    .map-station-counter {
+      position: absolute;
+      bottom: 52px;
+      inset-inline-start: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-ui);
+      font-size: 11px;
+      color: rgba(255,255,255,.4);
+      letter-spacing: .08em;
+      z-index: 20;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    /* Scroll hint */
+    .map-scroll-hint {
+      position: absolute;
+      bottom: var(--space-4);
+      inset-inline-start: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,.42);
+      font-family: var(--font-arabic);
+      font-size: 11px;
+      letter-spacing: .03em;
+      z-index: 20;
+      pointer-events: none;
+      transition: opacity .6s ease;
+      white-space: nowrap;
+    }
+    body.ltr .map-scroll-hint { font-family: var(--font-ui); }
+    .map-scroll-hint.hidden { opacity: 0; }
+    .map-scroll-arrow { animation: bounceDown 1.6s ease-in-out infinite; }
+    @keyframes bounceDown {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(7px); }
+    }
+
+    /* Mobile bottom card */
+    .map-mobile-card {
+      display: none;
+      position: absolute;
+      bottom: 68px;
+      left: var(--space-4);
+      right: var(--space-4);
+      background: rgba(5,3,1,.9);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(201,168,76,.32);
+      border-radius: 12px;
+      padding: 12px 14px;
+      z-index: 22;
+      pointer-events: none;
+    }
+
+    /* Spacer */
+    .map-scroll-spacer { /* height set by JS */ }
+
+    /* ══════════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .map-station-card { width: 170px; max-width: 40vw; padding: 10px 12px; }
+      .map-sc-title { font-size: 12px; }
+      .map-sc-body  { font-size: 10px; line-height: 1.55; }
+    }
+    @media (max-width: 620px) {
+      /* Hide floating cards; mobile overlay takes over */
+      .map-station-card { display: none; }
+      .map-mobile-card  { display: block; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .path-light-stroke, .path-glow-stroke,
+      .s-dot, .s-ring, .s-connector,
+      .map-station-card, .map-progress-fill {
+        transition: none !important;
+        animation:  none !important;
+      }
+    }
+  </style>
+</head>
+
+<body data-page="timeline">
+  <div id="timeline-bg"></div>
+  <div id="reading-progress-track"><div id="reading-progress"></div></div>
+
+  <!-- NAV -->
+  <nav id="main-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <span class="nav-logo-primary">سيرة <span class="nav-logo-gold">النبي</span> ﷺ</span>
+        <span class="nav-logo-sub">The Prophet Seerah</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html"       class="nav-link" data-i18n="nav.home">الرئيسية</a></li>
+        <li><a href="timeline.html"    class="nav-link active" data-i18n="nav.timeline">السيرة الزمنية</a></li>
+        <li><a href="events.html"      class="nav-link" data-i18n="nav.events">الأحداث الكبرى</a></li>
+        <li><a href="companions.html"  class="nav-link" data-i18n="nav.companions">الصحابة الكرام</a></li>
+        <li><a href="about.html"       class="nav-link" data-i18n="nav.about">عن النبي</a></li>
+        <li><a href="character.html"   class="nav-link" data-i18n="nav.character">أخلاقه الشريفة</a></li>
+        <li><a href="family-tree.html" class="nav-link" data-i18n="nav.family">شجرة النسب</a></li>
+      </ul>
+      <div class="nav-actions">
+        <div class="lang-switcher">
+          <button class="lang-btn" data-lang-btn="ar">ع</button>
+          <button class="lang-btn" data-lang-btn="en">EN</button>
+          <button class="lang-btn" data-lang-btn="fr">FR</button>
+        </div>
+        <button class="theme-toggle" data-theme-toggle aria-label="تبديل المظهر">
+          <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="theme-icon-sun"  width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+        </button>
+        <button id="menu-toggle" aria-label="القائمة" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu">
+    <button style="position:absolute;top:20px;inset-inline-end:20px;background:none;border:none;font-size:1.5rem;color:var(--text-primary);cursor:pointer;" onclick="MobileMenu.close()">✕</button>
+    <nav><ul style="display:flex;flex-direction:column;gap:16px;text-align:center;list-style:none;">
+      <li><a href="index.html"       class="mobile-nav-link" data-i18n="nav.home">الرئيسية</a></li>
+      <li><a href="timeline.html"    class="mobile-nav-link" data-i18n="nav.timeline">السيرة الزمنية</a></li>
+      <li><a href="events.html"      class="mobile-nav-link" data-i18n="nav.events">الأحداث الكبرى</a></li>
+      <li><a href="companions.html"  class="mobile-nav-link" data-i18n="nav.companions">الصحابة الكرام</a></li>
+      <li><a href="about.html"       class="mobile-nav-link" data-i18n="nav.about">عن النبي</a></li>
+      <li><a href="character.html"   class="mobile-nav-link" data-i18n="nav.character">أخلاقه الشريفة</a></li>
+      <li><a href="family-tree.html" class="mobile-nav-link" data-i18n="nav.family">شجرة النسب</a></li>
+    </ul></nav>
+    <div class="lang-switcher" style="margin-top:32px;">
+      <button class="lang-btn" data-lang-btn="ar">ع</button>
+      <button class="lang-btn" data-lang-btn="en">EN</button>
+      <button class="lang-btn" data-lang-btn="fr">FR</button>
+    </div>
+  </div>
+
+  <!-- ════ HERO ════ -->
+  <header class="timeline-hero">
+    <p class="section-eyebrow reveal" id="tl-hero-eyebrow">السيرة الكاملة</p>
+    <h1 class="timeline-hero-title reveal" id="tl-hero-title">السيرة الزمنية</h1>
+    <p class="timeline-hero-sub reveal" id="tl-hero-sub">رحلة عبر الزمن — من مكة إلى الوداع</p>
+  </header>
+
+  <!-- ════════════════════════════════════════
+       SECTION 1 — MAKKAH (15 stations, 3 rows × 5)
+       Save image as: images/makkah-historic.jpg
+  ════════════════════════════════════════ -->
+  <section class="map-journey-section ms-makkah" id="ms1-section" aria-label="المرحلة المكية">
+    <div class="map-sticky-viewport" id="ms1-viewport">
+      <img src="images/makkah-historic.jpg" class="map-bg-img" alt="مكة المكرمة التاريخية" loading="eager" decoding="async"/>
+      <div class="map-vignette"></div>
+      <svg class="map-path-svg" id="ms1-svg" viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="ms1-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"  stop-color="#9A7030"/><stop offset="45%" stop-color="#F0D070"/>
+            <stop offset="100%" stop-color="#C9A84C"/>
+          </linearGradient>
+          <radialGradient id="ms1-dg"><stop offset="0%" stop-color="#FFFDE0"/><stop offset="55%" stop-color="#F5D060"/><stop offset="100%" stop-color="#C8A030"/></radialGradient>
+          <filter id="ms1-gf" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="ms1-df" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <!-- Serpentine path: 3 rows L→R, R→L, L→R -->
+        <path id="ms1-pt" class="path-bg-trace"   d=""/>
+        <path id="ms1-pg" class="path-glow-stroke" filter="url(#ms1-gf)" d=""/>
+        <path id="ms1-pl" class="path-light-stroke" stroke="url(#ms1-grad)" d="M 420 290 C 620 268,760 312,980 290 C 1045 290,1068 340,1054 387 C 1040 440,1012 480,980 484 C 778 468,618 498,420 484 C 354 484,328 534,346 571 C 364 612,390 654,420 658 C 618 642,778 668,980 658"/>
+        <g id="ms1-cn"></g>
+        <g id="ms1-mk"></g>
+      </svg>
+      <div id="ms1-cards" class="map-cards-layer"></div>
+      <div id="ms1-mc" class="map-mobile-card"></div>
+      <div class="map-hud">
+        <p class="map-hud-eyebrow" id="ms1-hud-ey">المرحلة المكية &nbsp;·&nbsp; 571 م — 1 هـ</p>
+        <h2 class="map-hud-title" id="ms1-hud-ti">رحلة النور في مكة المكرمة</h2>
+        <div class="map-progress-track" id="ms1-pw" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="map-progress-fill" id="ms1-pf"></div>
+        </div>
+      </div>
+      <p class="map-station-counter" id="ms1-ct">المحطة 1 من 15</p>
+      <div class="map-scroll-hint" id="ms1-sh"><span id="ms1-sh-text">اسحب للأسفل لمتابعة الرحلة</span><div class="map-scroll-arrow">↓</div></div>
+    </div>
+    <div class="map-scroll-spacer" id="ms1-sp"></div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+       SECTION 2 — MADINAH (9 stations, 3 rows × 3)
+       Save image as: images/madinah-historic.jpg
+  ════════════════════════════════════════ -->
+  <section class="map-journey-section ms-madinah" id="ms2-section" aria-label="المرحلة المدنية">
+    <div class="map-sticky-viewport" id="ms2-viewport">
+      <img src="images/madinah-historic.jpg" class="map-bg-img" alt="المدينة المنورة التاريخية" loading="lazy" decoding="async"/>
+      <div class="map-vignette"></div>
+      <svg class="map-path-svg" id="ms2-svg" viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="ms2-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"  stop-color="#1A6040"/><stop offset="45%" stop-color="#70D090"/>
+            <stop offset="100%" stop-color="#40A860"/>
+          </linearGradient>
+          <radialGradient id="ms2-dg"><stop offset="0%" stop-color="#E0FFF0"/><stop offset="55%" stop-color="#60D888"/><stop offset="100%" stop-color="#30A050"/></radialGradient>
+          <filter id="ms2-gf" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="ms2-df" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <path id="ms2-pt" class="path-bg-trace"   d=""/>
+        <path id="ms2-pg" class="path-glow-stroke" filter="url(#ms2-gf)" stroke="rgba(64,168,96,.28)" d=""/>
+        <path id="ms2-pl" class="path-light-stroke" stroke="url(#ms2-grad)" d="M 420 290 C 620 268,760 312,980 290 C 1045 290,1068 340,1054 387 C 1040 440,1012 480,980 484 C 778 468,618 498,420 484 C 354 484,328 534,346 571 C 364 612,390 654,420 658 C 618 642,778 668,980 658"/>
+        <g id="ms2-cn"></g>
+        <g id="ms2-mk"></g>
+      </svg>
+      <div id="ms2-cards" class="map-cards-layer"></div>
+      <div id="ms2-mc" class="map-mobile-card"></div>
+      <div class="map-hud">
+        <p class="map-hud-eyebrow" id="ms2-hud-ey">العهد المدني &nbsp;·&nbsp; 1 هـ — 9 هـ</p>
+        <h2 class="map-hud-title" id="ms2-hud-ti">بناء الدولة الإسلامية في المدينة</h2>
+        <div class="map-progress-track" id="ms2-pw" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="map-progress-fill" id="ms2-pf"></div>
+        </div>
+      </div>
+      <p class="map-station-counter" id="ms2-ct">المحطة 1 من 9</p>
+      <div class="map-scroll-hint" id="ms2-sh"><span id="ms2-sh-text">اسحب للأسفل لمتابعة الرحلة</span><div class="map-scroll-arrow">↓</div></div>
+    </div>
+    <div class="map-scroll-spacer" id="ms2-sp"></div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+       SECTION 3 — FAREWELL (7 stations, 2 rows 4+3)
+       Save image as: images/farewell-historic.jpg
+  ════════════════════════════════════════ -->
+  <section class="map-journey-section ms-farewell" id="ms3-section" aria-label="عام الوداع">
+    <div class="map-sticky-viewport" id="ms3-viewport">
+      <img src="images/farewell-historic.jpg" class="map-bg-img" alt="مشهد حجة الوداع" loading="lazy" decoding="async"/>
+      <div class="map-vignette"></div>
+      <svg class="map-path-svg" id="ms3-svg" viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="ms3-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"  stop-color="#7A5010"/><stop offset="45%" stop-color="#F0C840"/>
+            <stop offset="100%" stop-color="#D4920C"/>
+          </linearGradient>
+          <radialGradient id="ms3-dg"><stop offset="0%" stop-color="#FFF8D0"/><stop offset="55%" stop-color="#F0C840"/><stop offset="100%" stop-color="#C08010"/></radialGradient>
+          <filter id="ms3-gf" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="ms3-df" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <!-- 2-row serpentine: L→R then R→L -->
+        <path id="ms3-pt" class="path-bg-trace"   d=""/>
+        <path id="ms3-pg" class="path-glow-stroke" filter="url(#ms3-gf)" stroke="rgba(240,200,64,.28)" d=""/>
+        <path id="ms3-pl" class="path-light-stroke" stroke="url(#ms3-grad)" d="M 420 280 C 620 255,760 305,980 280 C 1048 280,1072 332,1060 450 C 1048 542,1010 584,980 588 C 778 604,618 572,420 588"/>
+        <g id="ms3-cn"></g>
+        <g id="ms3-mk"></g>
+      </svg>
+      <div id="ms3-cards" class="map-cards-layer"></div>
+      <div id="ms3-mc" class="map-mobile-card"></div>
+      <div class="map-hud">
+        <p class="map-hud-eyebrow" id="ms3-hud-ey">عام الوداع &nbsp;·&nbsp; 10 هـ — 11 هـ</p>
+        <h2 class="map-hud-title" id="ms3-hud-ti">الوداع الأخير ﷺ</h2>
+        <div class="map-progress-track" id="ms3-pw" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="map-progress-fill" id="ms3-pf"></div>
+        </div>
+      </div>
+      <p class="map-station-counter" id="ms3-ct">المحطة 1 من 7</p>
+      <div class="map-scroll-hint" id="ms3-sh"><span id="ms3-sh-text">اسحب للأسفل لمتابعة الرحلة</span><div class="map-scroll-arrow">↓</div></div>
+    </div>
+    <div class="map-scroll-spacer" id="ms3-sp"></div>
+  </section>
+
+  <!-- ════ FOOTER ════ -->
+  <footer class="footer">
+    <div class="container-lg">
+      <div style="text-align:center;padding-bottom:var(--space-12);">
+        <span style="font-family:var(--font-arabic);font-size:var(--text-2xl);color:var(--color-gold);display:block;margin-bottom:var(--space-4);" class="animate-salawat">
+          اللهم صلِّ وسلِّم على سيدنا محمد ﷺ
+        </span>
+        <div style="display:flex;justify-content:center;gap:var(--space-4);flex-wrap:wrap;">
+          <a href="index.html"      class="footer-link">الرئيسية</a>
+          <a href="events.html"     class="footer-link">الأحداث الكبرى</a>
+          <a href="companions.html" class="footer-link">الصحابة</a>
+          <a href="about.html"      class="footer-link">عن النبي</a>
+        </div>
+      </div>
+      <div class="footer-bottom" style="justify-content:center;">
+        <p class="footer-copyright">© 1446 هـ — سيرة النور. صُنع بمحبة ووقار.</p>
+      </div>
+    </div>
+  </footer>
+
+  <button id="scroll-top" aria-label="العودة لأعلى">↑</button>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <script src="js/translations.js"></script>
+  <script src="js/theme.js"></script>
+
+  <script>
+  /* ════════════════════════════════════════════════════════════
+     MAP SECTION CONTROLLER — shared factory for all 3 sections
+  ════════════════════════════════════════════════════════════ */
+
+  /* On portrait phones (e.g. 390×844) with xMidYMid slice, the 1400-wide
+     viewBox is scaled by height (scale≈0.938), pushing the desktop path
+     (x 420–980) off both screen edges. Mobile paths use x 540–860 which
+     lands at ~45–345 px on a 390 px screen, fully visible. */
+  var _isMobile = function() { return window.innerWidth < 768; };
+  var _MOBILE_3ROW = 'M 560 180 C 666 162,764 198,840 180 C 888 180,906 228,898 290 C 890 346,866 374,840 376 C 764 362,666 390,560 376 C 512 376,494 422,506 480 C 518 538,544 564,560 566 C 666 552,764 578,840 566';
+  var _MOBILE_2ROW = 'M 560 260 C 668 242,762 278,840 260 C 888 260,908 308,900 408 C 892 490,866 530,840 534 C 762 520,662 544,560 534';
+
+  function createMapSection(pfx, stations, ui) {
+    var self = {
+      pfx: pfx,
+      STATIONS: stations,
+      _ui: ui || {},
+      totalLen: 0,
+      dotEls:   [],
+      ringEls:  [],
+      connEls:  [],
+      cardEls:  [],
+      lastActive: -1,
+      _ticking:   false,
+      _resizeTimer: null,
+      _desktopPath: '',
+      _mobilePath:  '',
+
+      _el: function(s) { return document.getElementById(pfx + s); },
+
+      init: function() {
+        self.section    = self._el('-section');
+        self.viewport   = self._el('-viewport');
+        self.svg        = self._el('-svg');
+        self.pathLight  = self._el('-pl');
+        self.pathGlow   = self._el('-pg');
+        self.pathTrace  = self._el('-pt');
+        self.spacer     = self._el('-sp');
+        self.progFill   = self._el('-pf');
+        self.progWrap   = self._el('-pw');
+        self.counter    = self._el('-ct');
+        self.scrollHint = self._el('-sh');
+        self.mobileCard = self._el('-mc');
+        self.cardsLayer = self._el('-cards');
+        self.markersG   = self._el('-mk');
+        self.connsG     = self._el('-cn');
+
+        if (!self.pathLight || !self.section) return;
+
+        /* Store both path variants */
+        self._desktopPath = self.pathLight.getAttribute('d');
+        self._mobilePath  = (pfx === 'ms3') ? _MOBILE_2ROW : _MOBILE_3ROW;
+
+        /* Apply correct path for current viewport */
+        self._applyPath(_isMobile() ? self._mobilePath : self._desktopPath);
+
+        /* Spacer height: 55 vh per station */
+        self._setSpacerHeight();
+
+        /* Build markers after first paint */
+        requestAnimationFrame(function() {
+          self._buildStations();
+          self._onScroll();
+        });
+
+        /* Scroll listener — rAF throttled */
+        window.addEventListener('scroll', function() {
+          if (!self._ticking) {
+            requestAnimationFrame(function() {
+              self._onScroll();
+              self._ticking = false;
+            });
+            self._ticking = true;
+          }
+        }, { passive: true });
+
+        /* Resize: switch path at mobile breakpoint, rebuild markers */
+        window.addEventListener('resize', function() {
+          clearTimeout(self._resizeTimer);
+          self._resizeTimer = setTimeout(function() {
+            var newPath = _isMobile() ? self._mobilePath : self._desktopPath;
+            if (newPath !== self.pathLight.getAttribute('d')) {
+              self._applyPath(newPath);
+              self._rebuildStations();
+            }
+            self._setSpacerHeight();
+            self._repositionCards();
+            self._onScroll();
+          }, 220);
+        }, { passive: true });
+      },
+
+      /* Set path on all three SVG path elements + remeasure */
+      _applyPath: function(d) {
+        self.pathLight.setAttribute('d', d);
+        if (self.pathGlow)  self.pathGlow.setAttribute('d', d);
+        if (self.pathTrace) self.pathTrace.setAttribute('d', d);
+        self.totalLen = self.pathLight.getTotalLength();
+        [self.pathLight, self.pathGlow].forEach(function(p) {
+          if (!p) return;
+          p.style.strokeDasharray  = self.totalLen;
+          p.style.strokeDashoffset = self.totalLen;
+        });
+      },
+
+      /* Tear down and recreate all station markers / cards */
+      _rebuildStations: function() {
+        self.markersG.innerHTML   = '';
+        self.connsG.innerHTML     = '';
+        self.cardsLayer.innerHTML = '';
+        self.dotEls  = []; self.ringEls = [];
+        self.connEls = []; self.cardEls = [];
+        self.lastActive = -1;
+        self._buildStations();
+      },
+
+      _setSpacerHeight: function() {
+        var pps = window.innerHeight * 0.55;
+        self.spacer.style.height = (self.STATIONS.length * pps + window.innerHeight) + 'px';
+      },
+
+      /* SVG coordinate → viewport percentage */
+      _svgPt: function(svgX, svgY) {
+        var pt = self.svg.createSVGPoint();
+        pt.x = svgX; pt.y = svgY;
+        var sc = pt.matrixTransform(self.svg.getScreenCTM());
+        var vp = self.viewport.getBoundingClientRect();
+        return {
+          xPct: ((sc.x - vp.left) / vp.width)  * 100,
+          yPct: ((sc.y - vp.top)  / vp.height) * 100,
+        };
+      },
+
+      _buildStations: function() {
+        self.STATIONS.forEach(function(s, i) {
+          var pt = self.pathLight.getPointAtLength(s.p * self.totalLen);
+
+          /* Ring */
+          var ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          ring.setAttribute('cx', pt.x); ring.setAttribute('cy', pt.y); ring.setAttribute('r', '13');
+          ring.classList.add('s-ring');
+          self.markersG.appendChild(ring);
+          self.ringEls.push(ring);
+
+          /* Dot */
+          var dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y); dot.setAttribute('r', '5');
+          dot.setAttribute('fill', 'url(#' + pfx + '-dg)');
+          dot.setAttribute('filter', 'url(#' + pfx + '-df)');
+          dot.classList.add('s-dot');
+          self.markersG.appendChild(dot);
+          self.dotEls.push(dot);
+
+          /* Connector */
+          var conn = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          conn.setAttribute('x1', pt.x); conn.setAttribute('y1', pt.y);
+          conn.classList.add('s-connector');
+          self.connsG.appendChild(conn);
+          self.connEls.push(conn);
+
+          /* Card */
+          var card = document.createElement('div');
+          card.className = 'map-station-card';
+          card.setAttribute('role', 'note');
+          card.innerHTML =
+            '<p class="map-sc-num">' + (self._ui.station || 'المحطة') + ' ' + (i + 1) + '</p>' +
+            '<p class="map-sc-year">' + s.y + '</p>' +
+            '<h3 class="map-sc-title">' + s.ic + '&nbsp;' + s.t + '</h3>' +
+            '<p class="map-sc-body">' + s.b + '</p>';
+          self.cardsLayer.appendChild(card);
+          self.cardEls.push(card);
+
+          self._placeCard(i, pt);
+        });
+      },
+
+      _placeCard: function(i, svgPt) {
+        var pos  = self._svgPt(svgPt.x, svgPt.y);
+        var card = self.cardEls[i];
+        var conn = self.connEls[i];
+        if (!card) return;
+
+        var xPct = pos.xPct, yPct = pos.yPct;
+
+        /* Clear previous positioning */
+        card.style.cssText = '';
+
+        /* Horizontal: card goes opposite side of dot */
+        var GAP = 4;
+        if (xPct <= 50) {
+          card.style.left = Math.min(xPct + GAP, 55) + '%';
+        } else {
+          card.style.right = Math.min(100 - xPct + GAP, 55) + '%';
+        }
+
+        /* Vertical: above/below based on row */
+        if (yPct < 40) {
+          card.style.top = Math.min(yPct + 6, 54) + '%';
+        } else if (yPct > 62) {
+          card.style.top = Math.max(yPct - 30, 10) + '%';
+        } else {
+          card.style.top = Math.max(Math.min(yPct - 8, 64), 10) + '%';
+        }
+
+        /* Connector x2 toward card */
+        if (conn) {
+          var dir = (xPct <= 50) ? 1 : -1;
+          conn.setAttribute('x2', svgPt.x + dir * 52);
+          conn.setAttribute('y2', svgPt.y);
+        }
+      },
+
+      _repositionCards: function() {
+        self.STATIONS.forEach(function(s, i) {
+          var pt = self.pathLight.getPointAtLength(s.p * self.totalLen);
+          self._placeCard(i, pt);
+        });
+      },
+
+      _onScroll: function() {
+        if (!self.section) return;
+
+        var rect      = self.section.getBoundingClientRect();
+        var sectionH  = self.section.offsetHeight;
+        var vpH       = window.innerHeight;
+        var scrolled  = -rect.top;
+        var scrollable = sectionH - vpH;
+        var progress  = Math.max(0, Math.min(1, scrolled / scrollable));
+
+        /* Draw path */
+        var offset = self.totalLen * (1 - progress);
+        if (self.pathLight) self.pathLight.style.strokeDashoffset = offset;
+        if (self.pathGlow)  self.pathGlow.style.strokeDashoffset  = offset;
+
+        /* Progress bar */
+        if (self.progFill) self.progFill.style.width = (progress * 100) + '%';
+        if (self.progWrap) self.progWrap.setAttribute('aria-valuenow', Math.round(progress * 100));
+
+        /* Scroll hint */
+        if (progress > 0.03 && self.scrollHint) self.scrollHint.classList.add('hidden');
+
+        /* Station activation */
+        var activeIdx = -1;
+        self.STATIONS.forEach(function(s, i) {
+          var reached = progress >= s.tr;
+          if (self.dotEls[i])  self.dotEls[i].classList.toggle('reached', reached);
+          if (self.ringEls[i]) self.ringEls[i].classList.toggle('reached', reached);
+          if (self.connEls[i]) self.connEls[i].classList.toggle('reached', reached);
+          if (reached) activeIdx = i;
+        });
+
+        if (activeIdx === self.lastActive) return;
+        self.lastActive = activeIdx;
+
+        /* Cards */
+        self.cardEls.forEach(function(card, i) {
+          card.classList.remove('visible', 'fading');
+          if (i === activeIdx)          card.classList.add('visible');
+          else if (i === activeIdx - 1) card.classList.add('fading');
+        });
+
+        /* Dot pulse */
+        self.dotEls.forEach(function(d, i) {
+          if (d) d.classList.toggle('active', i === activeIdx);
+        });
+
+        /* Mobile overlay card — year + title + body */
+        if (self.mobileCard && activeIdx >= 0) {
+          var st = self.STATIONS[activeIdx];
+          self.mobileCard.innerHTML =
+            '<p class="map-sc-year">' + st.y + '</p>' +
+            '<h3 style="font-family:var(--font-arabic);font-size:13px;font-weight:700;color:#fff;line-height:1.5;margin-bottom:5px;">' + st.ic + '&nbsp;' + st.t + '</h3>' +
+            '<p style="font-family:var(--font-arabic);font-size:10.5px;color:rgba(255,255,255,.52);line-height:1.6;">' + st.b + '</p>';
+        }
+
+        /* Counter */
+        if (self.counter) {
+          var _ui = self._ui;
+          self.counter.textContent = activeIdx >= 0
+            ? (_ui.station || 'المحطة') + ' ' + (activeIdx + 1) + ' ' + (_ui.of || 'من') + ' ' + self.STATIONS.length
+            : (_ui.scrollStart || 'اسحب للأسفل لبدء الرحلة');
+        }
+      },
+
+      reload: function(newStations, newUi) {
+        self.STATIONS = newStations;
+        self._ui = newUi || {};
+        self._rebuildStations();
+        self.lastActive = -2;
+        self._onScroll();
+      },
+    };
+    return self;
+  }
+
+  /* ════ TRANSLATION HELPERS ════ */
+  function _getTL(lang) {
+    return (TRANSLATIONS[lang] && TRANSLATIONS[lang].timeline)
+      ? TRANSLATIONS[lang].timeline
+      : TRANSLATIONS.ar.timeline;
+  }
+
+  var _ms1, _ms2, _ms3;
+
+  /* Update only static text — hero, HUDs, scroll hints. Does NOT touch station DOM. */
+  function updateTimelineText(lang) {
+    var tl = _getTL(lang);
+
+    var he = document.getElementById('tl-hero-eyebrow');
+    var ht = document.getElementById('tl-hero-title');
+    var hs = document.getElementById('tl-hero-sub');
+    if (he) he.textContent = tl.hero.eyebrow;
+    if (ht) ht.textContent = tl.hero.title;
+    if (hs) hs.textContent = tl.hero.sub;
+
+    [{ pfx:'ms1', d:tl.ms1 }, { pfx:'ms2', d:tl.ms2 }, { pfx:'ms3', d:tl.ms3 }].forEach(function(h) {
+      var ey = document.getElementById(h.pfx + '-hud-ey');
+      var ti = document.getElementById(h.pfx + '-hud-ti');
+      if (ey) ey.textContent = h.d.eyebrow;
+      if (ti) ti.textContent = h.d.title;
+    });
+
+    ['ms1','ms2','ms3'].forEach(function(pfx) {
+      var sht = document.getElementById(pfx + '-sh-text');
+      if (sht) sht.textContent = tl.ui.scrollHint;
+    });
+  }
+
+  /* Full reload — text + station cards (called on language switch only). */
+  function reloadTimeline(lang) {
+    var tl = _getTL(lang);
+    updateTimelineText(lang);
+    if (_ms1) _ms1.reload(tl.makkah,  tl.ui);
+    if (_ms2) _ms2.reload(tl.madinah, tl.ui);
+    if (_ms3) _ms3.reload(tl.farewell, tl.ui);
+  }
+
+  /* ════ INIT ════ */
+  document.addEventListener('DOMContentLoaded', function() {
+    var lang = (typeof LangManager !== 'undefined') ? LangManager.current : 'ar';
+    var tl   = _getTL(lang);
+
+    _ms1 = createMapSection('ms1', tl.makkah,  tl.ui); _ms1.init();
+    _ms2 = createMapSection('ms2', tl.madinah, tl.ui); _ms2.init();
+    _ms3 = createMapSection('ms3', tl.farewell, tl.ui); _ms3.init();
+
+    /* Update static text only — sections already have correct station data */
+    updateTimelineText(lang);
+  });
+
+  document.addEventListener('langChange', function(e) {
+    reloadTimeline(e.detail.lang);
+  });
+  </script>
+</body>
+</html>
